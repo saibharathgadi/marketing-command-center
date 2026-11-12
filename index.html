@@ -158,6 +158,24 @@ tr:last-child td{border-bottom:0}
 .st.blocked{background:var(--bad-soft);color:var(--bad);border-color:transparent}
 .st.skipped{text-decoration:line-through}
 .sm{font-size:13px;color:var(--muted)}
+.wfintro{max-width:75ch;margin:14px 0 0;font-size:14.5px}
+.wfl{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:0}
+.wfs{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;position:relative;padding-bottom:14px}
+.wfs:not(:last-child)::before{content:"";position:absolute;left:21px;top:44px;bottom:0;width:2px;background:var(--line)}
+.wfn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:800 15px var(--font);background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);position:relative}
+.wfs.you .wfn{background:var(--accent);color:var(--accent-fg);border-color:transparent;font-size:11px;letter-spacing:.04em}
+.wfc{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;min-width:0;box-shadow:var(--shadow)}
+.wfs.you .wfc{border-color:var(--accent)}
+.wfc h3{margin:0;font-size:1.02rem;font-weight:800;letter-spacing:-.01em;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.wfc h3 small{font:12px var(--mono);color:var(--muted);font-weight:400}
+.wfc>p{margin:4px 0 0;font-size:13.5px;color:var(--muted);max-width:75ch}
+.wfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 22px;margin-top:12px}
+.wfg div{min-width:0;font-size:13.5px}
+.wfg b{display:block;font:700 10.5px var(--font);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.wfco{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.wfco span.x{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);min-width:0}
+.wfrules{margin:0;padding-left:20px;max-width:80ch;font-size:13.5px}.wfrules li{margin:4px 0}
+@media (max-width:560px){.wfs{grid-template-columns:32px minmax(0,1fr);gap:10px}.wfn{width:32px;height:32px;font-size:13px}.wfs.you .wfn{font-size:9px}.wfs:not(:last-child)::before{left:15px;top:32px}}
 footer{margin-top:34px;font-size:12.5px;color:var(--muted)}
 [hidden]{display:none!important}
 
@@ -276,6 +294,7 @@ footer{margin-top:34px;font-size:12.5px;color:var(--muted)}
     <button class="tab" role="tab" id="t-approvals" data-tab="approvals" aria-selected="false">Approvals<span class="badge" id="b-app" hidden></span></button>
     <button class="tab" role="tab" id="t-team" data-tab="team" aria-selected="false">Team</button>
     <button class="tab" role="tab" id="t-work" data-tab="work" aria-selected="false">Work and checks</button>
+    <button class="tab" role="tab" id="t-workflow" data-tab="workflow" aria-selected="false">Workflow</button>
   </div>
   <button class="chip" data-co="all" aria-pressed="true">All</button>
   <button class="chip" data-co="easystepin" aria-pressed="false">EasyStepIn</button>
@@ -294,12 +313,13 @@ footer{margin-top:34px;font-size:12.5px;color:var(--muted)}
 <section id="v-approvals" role="tabpanel" aria-labelledby="t-approvals" hidden><div id="decnote" class="sm" style="margin-top:12px"></div><div class="list" id="list"></div></section>
 <section id="v-team" role="tabpanel" aria-labelledby="t-team" hidden><div id="team"></div></section>
 <section id="v-work" role="tabpanel" aria-labelledby="t-work" hidden><div id="work"></div></section>
+<section id="v-workflow" role="tabpanel" aria-labelledby="t-workflow" hidden><div id="wf"></div></section>
 <footer id="foot"></footer>
 </div>
 
 <script>
 window.__start=function(){(function(){
-  var TABS=["overview","calendar","approvals","team","work"];
+  var TABS=["overview","calendar","approvals","team","work","workflow"];
   var state={co:"all",q:"",tab:"overview"}, items=[], posts=[], snap={}, dl=null, dbh=null, uid=null, decisions={}, pnames={}, gen="";
   var names={easystepin:"EasyStepIn",elev8:"Elev8",verolyx:"Verolyx"};
   var $=function(id){return document.getElementById(id)};
@@ -593,10 +613,50 @@ window.__start=function(){(function(){
       +'<h2 class="sec">Run history</h2><div class="tw"><table><thead><tr><th>When</th><th>Run</th><th>Company</th><th>Result</th><th>Note</th></tr></thead><tbody>'+(rh||'<tr><td colspan="5">None yet.</td></tr>')+'</tbody></table></div>';
   }
 
+  /* ---- workflow: the stages from org/PIPELINE.md, with live status from the pipeline state ---- */
+  var FLOW=[
+    {n:"Audit",what:"Collect hard data about the company's website.",who:"Site Auditor",gate:"Research Manager checks the data is complete.",out:"Raw site audit data",when:"Monday 06:30"},
+    {n:"Breakdown",what:"Read the audit, pick what matters and split it into tasks for the specialists.",who:"Audit Researcher",gate:"Research Manager approves the task cards.",out:"Task cards, one per specialist",when:"Monday 06:30"},
+    {n:"Research",what:"Specialists research and turn their findings into ideas.",who:"Technical, on-page and off-page SEO auditors; AEO and GEO specialists; keyword scraper, then keyword assigner; competitive analyst; market researcher; content researcher",gate:"Research Manager signs off the Idea Bank.",out:"Idea Bank: every idea ranked by impact and effort",when:"Monday 06:30"},
+    {n:"Planning",what:"The Idea Bank becomes the content plan and the week's work orders.",who:"Content Planner, Blog Planner, Social Media Planner, and the Ads Planner for paid ideas",gate:"Content Manager approves the plan, with CFO guidance on budget.",out:"Content plan, planning cards and work orders",when:"Monday 07:30"},
+    {n:"Production",what:"Write, edit and design the planned pieces.",who:"Managing Editor with Blog Researcher, Content Writer and Copy Editor; Social Media Manager with Social Copywriter; Creative Director with Graphic Designer; Email Marketer; Landing Page Optimizer; PR lead",gate:"Content Manager and Growth Manager sign off.",out:"Drafts, designs and Word files",when:"Weekdays 09:30"},
+    {n:"Paid media",what:"Plan, target and create ads. Runs only when the week has paid work.",who:"Ads Planner with the LinkedIn and Google planners, targeting specialist, ad copywriter, creative ideator and creative generator",gate:"Paid Media Manager signs. The CFO gives Approve, Hold or Reject, and nothing is spent on a Hold.",out:"Paid media plan, ad copy and ad creatives",when:"Weekdays 09:30"},
+    {n:"Quality",what:"An independent check of every claim, then of brand and voice.",who:"Claims Verifier, then Brand Guardian. The Process Auditor audits the run itself.",gate:"Quality Manager: Pass, Revise or Block.",out:"Quality verdict next to each draft",when:"Weekdays 09:30"},
+    {n:"Management",what:"Executives review plan against output, cost and system health.",who:"CMO, CFO, CTO and CEO. Marketing Analyst and Marketing Ops measure.",gate:"The CMO queues the items that passed quality.",out:"Rows in the approval queue, management reports",when:"Weekdays 16:30, Friday digest 17:00"}
+  ];
+  var HAND=[["Task card","Audit Researcher","Research specialists","One task from the audit: what to do, with which inputs, and when it counts as done"],["Idea card","Research specialists","Idea Bank","One idea with audience, keyword, why now, impact and effort, and which proof may be used"],["Idea Bank","Research Manager","Content Planner","Every idea in one ranked table, plus the rejected ideas with the reason"],["Planning card","Content Planner","Planners and teams","Format, channel, owner, goal, call to action and due date for one piece"],["Work order","Campaign Strategist","Department manager","One planned piece for the week, the manager who runs it and the stages it passes through"]];
+  var RHY=[["Monday 06:30","Audit cycle","/org-audit-cycle","Stages 1 to 3 for each company. A quick refresh weekly, a full audit on the first Monday of the month."],["Monday 07:30","Weekly plan","/org-weekly-plan","Stage 4. The Idea Bank becomes the week's plan and work orders."],["Weekdays 09:30","Daily production","/org-daily","Stages 5 to 7 for the day's work orders, then queueing for approval."],["Weekdays 16:30","Management monitor","/org-monitor","Stage 8. CTO, CFO, process audit and CMO reviews."],["Friday 17:00","Friday digest","/org-digest","CEO review, then one digest for the owner across all companies."]];
+  var WATCH=[["CTO","System health: logs, failed or stale runs, schedules, tool connections, technical SEO tickets","Every weekday afternoon"],["CFO","Effort by company and department, budget against plan, verdicts on paid plans","Weekdays and on every paid plan"],["Process Auditor","Whether every stage and gate was followed, rule breaks, fabricated claims","Weekdays"],["CMO","Plan against output per company, manager sign-offs, blocked work","Weekdays"],["CEO","All of the above plus goals, and decisions for the owner","Friday, before the digest"]];
+  function renderFlow(){
+    var pipe=snap.pipeline||[], ag=snap.agents||[], sch=snap.schedules||[], u=undecided().length;
+    var cosel=["easystepin","elev8","verolyx"].filter(function(c){return coOK(c)});
+    var stages=FLOW.map(function(f,i){
+      var cnt=ag.filter(function(a){return a.stage===f.n}).length;
+      var cs=cosel.map(function(c){var x=pipe.filter(function(p){return p.company===c&&p.stage===f.n})[0];
+        return '<span class="x"><span class="co '+c+'">'+coName(c)+'</span>'+(x?'<span class="st '+esc(x.status)+'">'+esc(x.status)+'</span>'+(x.note?esc(x.note):''):'<span class="st">no data</span>')+'</span>'}).join("");
+      return '<li class="wfs"><div class="wfn" aria-hidden="true">'+(i+1)+'</div><div class="wfc"><h3>'+(i+1)+'. '+esc(f.n)+(cnt?' <small>'+cnt+' agent'+(cnt>1?'s':'')+'</small>':'')+'</h3><p>'+esc(f.what)+'</p>'
+        +'<div class="wfg"><div><b>Who does the work</b>'+esc(f.who)+'</div><div><b>Gate</b>'+esc(f.gate)+'</div><div><b>Hands on</b>'+esc(f.out)+'</div><div><b>Runs</b>'+esc(f.when)+' IST</div></div>'
+        +(cs?'<div class="wfco">'+cs+'</div>':'')+'</div></li>'}).join("");
+    var you='<li class="wfs you"><div class="wfn" aria-hidden="true">YOU</div><div class="wfc"><h3>9. Your approval</h3><p>Every queued item waits here with its Word file and designs. You approve it, send it back with a note, or reject it.</p>'
+        +'<div class="wfg"><div><b>Right now</b>'+u+' of '+items.length+' items need a decision</div><div><b>Where</b><button class="btn ghost" data-tab="approvals">Open Approvals</button></div></div></div></li>'
+      +'<li class="wfs you"><div class="wfn" aria-hidden="true">YOU</div><div class="wfc"><h3>10. A person publishes</h3><p>The org only produces drafts. It never posts, publishes, sends, schedules or spends. After approval, a person on the team puts the piece live, and posts that link to a blog wait until that blog is live.</p>'
+        +'<div class="wfg"><div><b>Dates and times</b><button class="btn ghost" data-tab="calendar">Open Calendar</button></div></div></div></li>';
+    var hand=HAND.map(function(r){return '<tr><td><b>'+esc(r[0])+'</b></td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td>'+esc(r[3])+'</td></tr>'}).join("");
+    var rhy=RHY.map(function(r){var s=sch.filter(function(x){return x.command===r[2]})[0];return '<tr><td style="white-space:nowrap"><b>'+esc(r[0])+'</b></td><td>'+esc(r[1])+'<div class="sm">'+esc(r[2])+'</div></td><td>'+esc(r[3])+'</td><td style="white-space:nowrap">'+esc(s?s.next:"not scheduled")+'</td></tr>'}).join("");
+    var wat=WATCH.map(function(r){return '<tr><td><b>'+esc(r[0])+'</b></td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td></tr>'}).join("");
+    $("wf").innerHTML='<p class="wfintro">How a piece of work moves from a website audit to something you approve. Each stage has a gate, and nothing skips one. Status shows each company\'s current run.</p>'
+      +'<h2 class="sec">The flow, start to finish</h2><ol class="wfl">'+stages+you+'</ol>'
+      +'<h2 class="sec">Rules that hold at every stage</h2><ul class="wfrules"><li>Only work that passes the quality gate enters the approval queue.</li><li>A manager or lead can send work back once, with exact fixes. A gate failed twice is blocked and goes to the CEO.</li><li>Managers hand work only to their own direct reports. Specialists do their own work.</li><li>Each piece is for one company. Facts, claims and voice are never mixed between companies.</li><li>No invented numbers, customers or quotes. A missing fact is marked for you to confirm.</li></ul>'
+      +'<h2 class="sec">What is handed from stage to stage</h2><div class="tw"><table><thead><tr><th>Handoff</th><th>From</th><th>To</th><th>What it carries</th></tr></thead><tbody>'+hand+'</tbody></table></div>'
+      +'<h2 class="sec">Weekly rhythm</h2><div class="tw"><table><thead><tr><th>When (IST)</th><th>Run</th><th>Covers</th><th>Next</th></tr></thead><tbody>'+rhy+'</tbody></table></div><p class="sm" style="margin-top:8px">Scheduled runs happen only while the computer that hosts the org is on with Claude open.</p>'
+      +'<h2 class="sec">Who watches the org</h2><div class="tw"><table><thead><tr><th>Who</th><th>Watches</th><th>How often</th></tr></thead><tbody>'+wat+'</tbody></table></div>';
+    $("count").textContent="";
+  }
+
   function badge(){var n=undecided().length,b=$("b-app");b.textContent=n;b.hidden=!n}
   function render(){
     badge();
-    ({overview:renderOverview,calendar:renderCal,approvals:renderApp,team:renderTeam,work:renderWork})[state.tab]();
+    ({overview:renderOverview,calendar:renderCal,approvals:renderApp,team:renderTeam,work:renderWork,workflow:renderFlow})[state.tab]();
     if(state.tab==="overview")$("count").textContent="";
     if(window.__hydrate)window.__hydrate();
   }
